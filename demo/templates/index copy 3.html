@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RL-based Automated Data Cleaning System - Flask Version</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link href="https://cdn.jsdelivr.net/npm/font-awesome@4.7.0/css/font-awesome.min.css" rel="stylesheet">
+    <!-- ECharts -->
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+    <!-- Custom CSS -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="text-text-primary">
+    <div class="top-banner">
+        <div class="banner-content">
+            <div>
+                <h1 class="banner-main-title">RL-based Automated Data Cleaning System</h1>
+            </div>
+        </div>
+    </div>
+    <!-- Main Layout Container -->
+    <div class="layout-container">
+        <!-- Left Dashboard Panel -->
+        <div class="left-panel">
+            <!-- Data Operations Area -->
+            <div class="card p-4">
+                <h3 class="text-sm font-semibold flex items-center mb-3">
+                    <i class="fa fa-database text-primary mr-2"></i>Data Operations
+                </h3>
+                <div class="flex flex-col gap-2 relative">
+                    <button class="action-btn btn-primary w-full" onclick="openUploadSidebar()">
+                        <i class="fa fa-upload mr-1"></i>Upload Data
+                    </button>
+                    <button class="action-btn btn-success w-full" onclick="runQualityCheckAndLoad()">
+                        <i class="fa fa-play mr-1"></i>Quality Check
+                    </button>
+                    <!-- 新增的数据增强按钮 -->
+                    <button class="action-btn btn-info w-full" onclick="runDataAugmentation()">
+                        <i class="fa fa-magic mr-1"></i>Data Augmentation
+                    </button>
+                    <button class="action-btn btn-warning w-full" onclick="runDataCleaning()">
+                        <i class="fa fa-shower mr-1"></i>Data Cleaning
+                    </button>
+                    <button class="action-btn btn-danger w-full" onclick="downloadResults()">
+                        <i class="fa fa-download mr-1"></i>Download Results
+                    </button>
+                </div>
+            </div>
+
+            <!-- Data Quality Statistics -->
+            <div class="card p-4 quality-stats-card">
+                <h3 class="text-sm font-semibold flex items-center mb-3">
+                    <i class="fa fa-bar-chart text-primary mr-2"></i>Data Quality Statistics
+                </h3>
+                <div class="quality-stats-content">
+                    <!-- Data Metrics -->
+                    <div class="mb-4">
+                        <div class="metric-item">
+                            <span class="metric-label">Data Volume</span>
+                            <span class="metric-value metric-primary">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Number of Features</span>
+                            <span class="metric-value metric-primary">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Number of Classes</span>
+                            <span class="metric-value metric-primary">0</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Missing Rate</span>
+                            <span class="metric-value metric-warning">0%</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Feature Noise Ratio</span>
+                            <span class="metric-value metric-danger">0%</span>
+                        </div>
+                        <div class="metric-item">
+                            <span class="metric-label">Label Noise Ratio</span>
+                            <span class="metric-value metric-danger">0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Chart Visualization -->
+                    <div class="mt-2">
+                        <h4 class="text-xs font-semibold mb-2">Data Visualization</h4>
+                        <div class="chart-tab-group">
+                            <div class="chart-tab active" onclick="switchChart('class')">Class Distribution</div>
+                            <div class="chart-tab" onclick="switchChart('tsne')">TSNE Dimensionality Reduction</div>
+                        </div>
+                        <div class="h-48">
+                            <div id="dataVisualChart" class="w-full h-full"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Middle Table Panel -->
+        <div class="middle-panel">
+            <!-- Upload Data Display Table -->
+            <div class="card middle-card-wrapper upload-card">
+                <div class="p-4">
+                    <!-- 修改：删除了包含  的类，并移除了 id 为 currentDatasetHint 的提示文字 -->
+                    <div class="flex justify-between items-center flex-wrap">
+                        <h3 class="text-sm font-semibold flex items-center">
+                            <i class="fa fa-table text-primary mr-2"></i>Data Display
+                        </h3>
+                        <!-- Four dataset tabs -->
+                        <div class="flex gap-2">
+                            <button class="tab-btn active" onclick="switchDisplayDataset('test')">Test Set</button>
+                            <button class="tab-btn" onclick="switchDisplayDataset('val')">Validation Set</button>
+                            <button class="tab-btn" onclick="switchDisplayDataset('pool')">Candidate Pool</button>
+                            <button class="tab-btn" onclick="switchDisplayDataset('result')">Result Set</button>
+                        </div>
+                    </div>
+                </div>
+                <div class="middle-card-content p-0 px-4 pb-4">
+                    <!-- Table scroll container -->
+                    <div class="table-scroll-container" id="dataDisplayContainer">
+                        <!-- Content will be dynamically generated by JavaScript -->
+                        <div class="no-data-hint">
+                            <i class="fa fa-database"></i>
+                            <p>No data available. Please click the [Upload Data] button to start.</p>
+                        </div>
+                    </div>
+                    <!-- Upload data table pagination -->
+                    <div class="pagination-container" id="uploadTablePagination">
+                        <button class="pagination-btn" onclick="changeUploadPage('prev')" id="uploadPrevBtn">Previous</button>
+                        <div class="pagination-numbers" id="uploadPageNumbers"></div>
+                        <button class="pagination-btn" onclick="changeUploadPage('next')" id="uploadNextBtn">Next</button>
+                        <div class="pagination-jump">
+                            <span>Jump to</span>
+                            <input type="number" min="1" value="1" id="uploadPageInput">
+                            <span>Page</span>
+                            <button class="pagination-btn" onclick="jumpUploadPage()">Go</button>
+                        </div>
+                        <div class="pagination-info" id="uploadPageInfo">Total 1 Page</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RL Decision Table Display -->
+            <div class="card middle-card-wrapper decision-card">
+                <div class="p-4">
+                    <!-- 修改：删除了包含  的类 -->
+                    <div class="flex justify-between items-center flex-wrap">
+                        <h3 class="text-sm font-semibold flex items-center">
+                            <i class="fa fa-list-alt text-primary mr-2"></i>RL Decision Table
+                        </h3>
+                        <div class="flex items-center gap-2 flex-wrap">
+                            <label class="text-xs flex items-center">
+                                <input type="checkbox" id="autoProcessToggle" class="mr-1" onchange="toggleAutoProcess()">
+                                Auto Execute Decisions
+                            </label>
+                            <button class="action-btn btn-success batch-btn" id="batchAcceptBtn" onclick="batchProcess('accept')">
+                                <i class="fa fa-check mr-1"></i>Batch Accept
+                            </button>
+                            <button class="action-btn btn-danger batch-btn" id="batchRejectBtn" onclick="batchProcess('reject')">
+                                <i class="fa fa-times mr-1"></i>Batch Reject
+                            </button>
+                        </div>
+                    </div>
+                    <!-- 修改：此处的  类被删除 -->
+                    <div class="text-xs text-gray-dark">
+                        Selected: <span class="font-bold text-primary" id="selectedCount">0</span> / 215 | Pending: <span class="text-warning">215</span>
+                    </div>
+                </div>
+                <div class="middle-card-content p-0 px-4 pb-4">
+                    <!-- Table scroll container -->
+                    <div class="table-scroll-container">
+                        <table class="data-table" id="decisionTable">
+                            <thead>
+                                <tr>
+                                    <th class="w-30 text-center">
+                                        <div class="check-all-container">
+                                            <input type="checkbox" class="check-all-checkbox" id="checkAllCheckbox" onclick="toggleCheckAll()">
+                                            <label class="check-invert-label" for="checkInvertCheckbox">Select All</label>
+                                        </div>
+                                    </th>
+                                    <th style="min-width: 80px;">Sample ID</th>
+                                    <th style="min-width: 80px;">Data Type</th>
+                                    <th style="min-width: 90px;">Operation Type</th>
+                                    <th style="min-width: 110px;">Issue Details</th>
+                                    <th style="min-width: 90px;">Original Value</th>
+                                    <th style="min-width: 120px;">Suggested Value</th>
+                                    <th style="min-width: 90px;">Confidence</th>
+                                    <th style="min-width: 120px;">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="decisionTableBody">
+                                <!-- Content will be dynamically rendered -->
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- 决策表格分Page控件 - 结构与展示表格完全一致 -->
+                    <div class="pagination-container" id="decisionTablePagination">
+                        <button class="pagination-btn" id="decisionPrevBtn" onclick="changeDecisionPage('prev')" disabled>Previous</button>
+                        <div class="pagination-numbers" id="decisionPageNumbers"></div>
+                        <button class="pagination-btn" id="decisionNextBtn" onclick="changeDecisionPage('next')">Next</button>
+                        <div class="pagination-jump">
+                            <span>Jump to</span>
+                            <input type="number" min="1" value="1" id="decisionPageInput">
+                            <span>Page</span>
+                            <button class="pagination-btn" onclick="jumpDecisionPage()">Go</button>
+                        </div>
+                        <div class="pagination-info" id="decisionPageInfo">Total 2 Page</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Timeline Panel -->
+        <div class="right-panel">
+            <div class="timeline-container">
+                <div class="timeline-title">
+                    <i class="fa fa-history"></i>Cleaning Progress & Decisions
+                </div>
+                
+                <!-- Iteration 1 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-iteration-title">Iteration 1 (Completed) | 2026-03-12 10:15</div>
+                    <div class="timeline-content-row">
+                        <strong>Action:</strong> Relabel <span class="badge">340 Items</span>
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Reward</strong> S12856 | Noise: 21.8%
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Accuracy:</strong> 78.2% <span class="badge">Improvement +0.0%</span>
+                    </div>
+                    <div class="timeline-content-row prob">
+                        <strong>Dirty Ratio:</strong> Relabel (Probability 68.2%)
+                    </div>
+                </div>
+
+                <!-- Iteration 2 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-iteration-title">Iteration 2 (Completed) | 2026-03-12 10:30</div>
+                    <div class="timeline-content-row">
+                        <strong>Action:</strong> Delete Sample <span class="badge">120 Items</span>
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Reward</strong> S12736 | Noise: 18.5%
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Accuracy:</strong> 78.2% <span class="badge">Improvement +0.0%</span>
+                    </div>
+                    <div class="timeline-content-row prob">
+                        <strong>Dirty Ratio:</strong> Delete Anomalous Samples (Probability 72.5%)
+                    </div>
+                </div>
+
+                <!-- Iteration 3 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-iteration-title">Iteration 3 (Pending)</div>
+                    <div class="timeline-content-row">
+                        <strong>Action:</strong> Repair Feature <span class="badge">215 Items</span>
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Reward</strong> S12736 | Noise: 15.2%
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Accuracy:</strong> 78.2% <span class="badge">Improvement +0.0%</span>
+                    </div>
+                    <div class="timeline-content-row prob">
+                        <strong>Dirty Ratio:</strong> Repair Feature Outliers (Probability 78.3%)
+                    </div>
+                </div>
+
+                <!-- Iteration 4 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-iteration-title">Iteration 4 (Predicted)</div>
+                    <div class="timeline-content-row">
+                        <strong>Action:</strong> Add Sample <span class="badge">85 Items</span>
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Expected Status:</strong> S12821 | Noise: 12.1%
+                    </div>
+                    <div class="timeline-content-row prob">
+                        <strong>Dirty Ratio:</strong> Add Samples for Scarce Classes (Probability 82.1%)
+                    </div>
+                </div>
+
+                <!-- Iteration 5 -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-iteration-title">Iteration 5 (Predicted)</div>
+                    <div class="timeline-content-row">
+                        <strong>Action:</strong> Merge Feature <span class="badge">56 Items</span>
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Expected Status:</strong> S12821 | Noise: 9.8%
+                    </div>
+                    <div class="timeline-content-row prob">
+                        <strong>Dirty Ratio:</strong> Merge Redundant Features (Probability 85.7%)
+                    </div>
+                </div>
+
+                <!-- Iteration 6 (Last, no vertical line) -->
+                <div class="timeline-item">
+                    <div class="timeline-dot"></div>
+                    <div class="timeline-line"></div>
+                    <div class="timeline-iteration-title">Iteration 6 (Predicted)</div>
+                    <div class="timeline-content-row">
+                        <strong>Action:</strong> Normalize <span class="badge">All Data</span>
+                    </div>
+                    <div class="timeline-content-row">
+                        <strong>Expected Status:</strong> S12821 | Noise: 7.2%
+                    </div>
+                    <div class="timeline-content-row prob">
+                        <strong>Dirty Ratio:</strong> Feature Normalization (Probability 90.5%)
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upload Sidebar -->
+    <div class="sidebar-overlay" id="sidebarOverlay" onclick="closeUploadSidebar()"></div>
+    <!-- Modified upload sidebar structure -->
+    <div class="upload-sidebar" id="uploadSidebar">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-semibold text-lg">Dataset Upload</h3>
+            <button class="text-gray-dark text-xl" onclick="closeUploadSidebar()">
+                <i class="fa fa-times"></i>
+            </button>
+        </div>
+
+        <!-- Target dataset selection -->
+        <div class="mb-4">
+            <label class="block text-gray-dark  font-medium">Upload to which dataset?</label>
+            <div class="flex gap-2">
+                <button class="tab-btn target-dataset-btn active" onclick="switchTargetDataset('test')">
+                    Test Set
+                </button>
+                <button class="tab-btn target-dataset-btn" onclick="switchTargetDataset('val')">
+                    Validation Set
+                </button>
+            </div>
+        </div>
+
+        <!-- Upload type selection -->
+        <div class="mb-4">
+            <label class="block text-gray-dark mb-2 font-medium">Upload Type</label>
+            <div class="flex gap-2">
+                <button class="tab-btn upload-type-btn active" onclick="switchUploadType('table')">
+                    Tabular Data
+                </button>
+                <button class="tab-btn upload-type-btn" onclick="switchUploadType('archive')">
+                    Archive
+                </button>
+            </div>
+        </div>
+
+        <!-- Table upload area -->
+        <div class="space-y-4 text-sm" id="tableUploadArea">
+            <div>
+                <label class="block text-gray-dark  font-medium">Table File (CSV/JSON/Excel)</label>
+                <!-- Outer drag-and-drop area with click events, removed middle button -->
+                <div class="border-2 border-dashed border-gray rounded-lg p-6 text-center  transition-colors duration-200 hover:border-primary hover:bg-blue-50 active:bg-blue-100 cursor-pointer"
+                    id="tableUploadZone"
+                    onclick="document.getElementById('tableFileInput').click()"
+                    ondrop="handleFileDrop(event, 'table')"
+                    ondragover="handleDragOver(event)">
+                    <!-- Initial state icon and text -->
+                    <div id="tableUploadInitial">
+                        <i class="fa fa-file-excel-o text-3xl text-gray-dark "></i>
+                        <p class="text-gray-dark ">Drag table file here, or <span class="text-primary font-medium">click to select file</span></p>
+                        <p class="text-xs text-gray-dark">Supports CSV, JSON, Excel formats</p>
+                    </div>
+
+                    <!-- File selection info display area (initially hidden) -->
+                    <div id="tableFileInfo" class="hidden text-left">
+                        <div class="flex items-center justify-between ">
+                            <div>
+                                <i class="fa fa-file-text-o text-primary text-xl mr-2"></i>
+                                <span class="font-medium" id="tableFileName">No file selected</span>
+                            </div>
+                            <span class="text-xs text-gray-dark" id="tableFileSize">-</span>
+                        </div>
+                        <div class="text-xs text-gray-dark " id="tableFileStatus">Waiting for upload...</div>
+                        <!-- Progress bar container -->
+                        <div class="w-full bg-gray-200 rounded-full h-1.5  hidden" id="tableProgressContainer">
+                            <div class="bg-primary h-1.5 rounded-full" id="tableProgressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <!-- Hidden file input -->
+                    <input type="file" class="hidden" id="tableFileInput" accept=".csv,.json,.xlsx,.xls" onchange="handleFileSelect(this.files, 'table')">
+                </div>
+            </div>
+            <div id="targetColumnSection" class="hidden">
+                <label class="block text-gray-dark font-medium mb-2">Target Column (for classification)</label>
+                <select id="targetColumnSelect" class="w-full border border-gray rounded p-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent">
+                    <option value="">-- Select target column --</option>
+                    <!-- 列选项将通过JavaScript动态填充 -->
+                </select>
+                <p class="text-xs text-gray-dark mt-1">
+                    This column will be used as the classification label for visualization.
+                </p>
+            </div>
+            <button class="action-btn btn-success w-full" onclick="uploadTableFile()">
+                <i class="fa fa-upload mr-1"></i>Start Uploading Table
+            </button>
+        </div>
+
+        <!-- Archive upload area -->
+        <div class="space-y-4 text-sm hidden" id="archiveUploadArea">
+            <div>
+                <label class="block text-gray-dark  font-medium">Archive (ZIP/RAR)</label>
+                <!-- Core modification: Make entire drag area clickable, remove internal button -->
+                <div class="border-2 border-dashed border-gray rounded-lg p-6 text-center  transition-colors duration-200 hover:border-primary hover:bg-blue-50 active:bg-blue-100 cursor-pointer upload-zone"
+                    id="archiveUploadZone"
+                    onclick="document.getElementById('archiveFileInput').click()"
+                    ondrop="handleFileDrop(event, 'archive')"
+                    ondragover="handleDragOver(event)"
+                    ondragleave="handleDragLeave(event)">
+                    <!-- Initial state prompt -->
+                    <div id="archiveUploadInitial">
+                        <i class="fa fa-file-archive-o text-3xl text-gray-dark "></i>
+                        <p class="text-gray-dark ">Drag archive file here, or <span class="text-primary font-medium">click to select file</span></p>
+                        <p class="text-xs text-gray-dark">Supports ZIP, RAR formats</p>
+                    </div>
+
+                    <!-- File selection info display area (initially hidden) -->
+                    <div id="archiveFileInfo" class="hidden text-left">
+                        <div class="flex items-center justify-between ">
+                            <div>
+                                <i class="fa fa-file-archive-o text-primary text-xl mr-2"></i>
+                                <span class="font-medium" id="archiveFileName">No file selected</span>
+                            </div>
+                            <span class="text-xs text-gray-dark" id="archiveFileSize">-</span>
+                        </div>
+                        <div class="text-xs text-gray-dark " id="archiveFileStatus">Waiting for upload...</div>
+                        <!-- Progress bar container -->
+                        <div class="w-full bg-gray-200 rounded-full h-1.5  hidden" id="archiveProgressContainer">
+                            <div class="bg-primary h-1.5 rounded-full" id="archiveProgressBar" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <!-- Hidden file input -->
+                    <input type="file" class="hidden" id="archiveFileInput" accept=".zip,.rar" onchange="handleFileSelect(this.files, 'archive')">
+                </div>
+            </div>
+            <!-- "Start Upload" button remains unchanged -->
+            <button class="action-btn btn-success w-full" onclick="uploadArchiveFile()">
+                <i class="fa fa-upload mr-1"></i>Start Uploading Archive
+            </button>
+        </div>
+    </div>
+
+    <!-- Image zoom preview modal -->
+    <div class="img-modal" id="imgModal">
+        <div class="img-modal-close" onclick="closeImgModal()">
+            <i class="fa fa-times"></i>
+        </div>
+        <img src="" alt="Large preview" class="img-modal-content" id="modalImg">
+    </div>
+    <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>
