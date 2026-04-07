@@ -1,15 +1,10 @@
 # ARGO: Interactive Data Governance System via Hierarchical Reinforcement Learning
 
-<p align="center">
-  <img src="https://img.shields.io/badge/Python-3.8+-blue.svg" alt="Python">
-  <img src="https://img.shields.io/badge/PyTorch-2.0+-red.svg" alt="PyTorch">
-  <img src="https://img.shields.io/badge/VLDB-2024-orange.svg" alt="VLDB">
-  <img src="https://img.shields.io/badge/License-MIT-green.svg" alt="License">
-</p>
+
 
 > **ARGO** is an interactive system for adaptive data governance via hierarchical reinforcement learning (HRL). It models data governance for machine learning as a sequential decision-making process, dynamically coordinating multiple operations including feature repairing, relabeling, augmentation, and sample removal.
 
-This repository contains the implementation of ARGO, accepted at **VLDB 2024**.
+ 
 
 ## 📖 Table of Contents
 
@@ -73,13 +68,15 @@ Existing methods typically address these issues independently with predefined pi
 
 ## ✨ Key Contributions
 
-| Feature | Description |
-|---------|-------------|
-| **Hierarchical RL** | High-level PPO agent decides *what* operation; low-level selectors decide *which* samples |
-| **Multi-Operation Coordination** | Dynamically sequences feature repairing, relabeling, augmentation, and removal |
-| **Human-in-the-Loop** | Incorporates user feedback as rewards and supervision signals |
-| **Interactive GUI** | Real-time visualization of dataset quality, model performance, and decision trajectories |
-| **Plug-and-Play Modules** | Supports extensible noise detectors (IDE, ED2-RPT) and generators (SMOTE, VAE, GAN, LLM) |
+
+| Feature                          | Description                                                                               |
+| -------------------------------- | ----------------------------------------------------------------------------------------- |
+| **Hierarchical RL**              | High-level PPO agent decides *what* operation; low-level selectors decide *which* samples |
+| **Multi-Operation Coordination** | Dynamically sequences feature repairing, relabeling, augmentation, and removal            |
+| **Human-in-the-Loop**            | Incorporates user feedback as rewards and supervision signals                             |
+| **Interactive GUI**              | Real-time visualization of dataset quality, model performance, and decision trajectories  |
+| **Plug-and-Play Modules**        | Supports extensible noise detectors (IDE, ED2-RPT) and generators (SMOTE, VAE, GAN, LLM)  |
+
 
 ## 🏗️ Architecture
 
@@ -100,21 +97,25 @@ Existing methods typically address these issues independently with predefined pi
 
 ### Agent Design
 
-| Component | Role |
-|-----------|------|
-| **PPO Agent** | High-level policy for operation selection based on dataset state |
-| **SelectorNet** | Sample-level selection with auxiliary prediction heads |
-| **Noise Detectors** | Pre-training modules for initialization |
-| **Data Generators** | Synthetic data augmentation  |
+
+| Component           | Role                                                             |
+| ------------------- | ---------------------------------------------------------------- |
+| **PPO Agent**       | High-level policy for operation selection based on dataset state |
+| **SelectorNet**     | Sample-level selection with auxiliary prediction heads           |
+| **Noise Detectors** | Pre-training modules for initialization                          |
+| **Data Generators** | Synthetic data augmentation                                      |
+
 
 ### Supported Operations
 
-| Operation | Description |
-|-----------|-------------|
+
+| Operation         | Description                                    |
+| ----------------- | ---------------------------------------------- |
 | `modify_features` | Detect and repair noisy/missing feature values |
-| `modify_labels` | Flip incorrectly labeled samples |
-| `add_samples` | Add high-quality synthetic samples |
-| `delete_samples` | Delete low-quality or harmful samples |
+| `modify_labels`   | Flip incorrectly labeled samples               |
+| `add_samples`     | Add high-quality synthetic samples             |
+| `delete_samples`  | Delete low-quality or harmful samples          |
+
 
 ## 📥 Installation
 
@@ -196,19 +197,19 @@ We evaluate ARGO on three datasets spanning different data modalities:
 
 ### Performance Comparison
 
-| Dataset | Type | Initial Accuracy | Final Accuracy | Improvement |
-|---------|------|------------------|----------------|-------------|
-| Adult | Tabular | ~70% | ~73% | +3% |
-| CIFAR-10 | Image | ~71% | ~74% | +3% |
-| IMDB | Text | ~60% | ~66% | +6% |
 
- 
+| Dataset  | Type    | Initial Accuracy | Final Accuracy | Improvement |
+| -------- | ------- | ---------------- | -------------- | ----------- |
+| Adult    | Tabular | ~70%             | ~73%           | +3%         |
+| CIFAR-10 | Image   | ~71%             | ~74%           | +3%         |
+| IMDB     | Text    | ~60%             | ~66%           | +6%         |
+
 
 ### Key Observations
 
-1.Multi-modal Generalization: ARGO is effective across tabular, text, and image data modalities.
-2.Progressive Learning: The accuracy steadily improves as training progresses, demonstrating the effectiveness of HRL.
- 
+1. Multi-modal Generalization: ARGO is effective across tabular, text, and image data modalities.
+
+2. Progressive Learning: The accuracy steadily improves as training progresses, demonstrating the effectiveness of HRL.
 
 ## ⚙️ Configuration
 
@@ -234,3 +235,5 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ---
 
 ⭐ If you find this work useful, please cite our paper and give this repository a star!
+```
+
