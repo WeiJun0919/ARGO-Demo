@@ -190,6 +190,26 @@ ARGO/
 └── README.md
 ```
 
+## 📊 Experimental Results
+
+We evaluate ARGO on three datasets spanning different data modalities:
+
+### Performance Comparison
+
+| Dataset | Type | Initial Accuracy | Final Accuracy | Improvement |
+|---------|------|------------------|----------------|-------------|
+| Adult | Tabular | ~70% | ~73% | +3% |
+| CIFAR-10 | Image | ~71% | ~74% | +3% |
+| IMDB | Text | ~60% | ~66% | +6% |
+
+ 
+
+### Key Observations
+
+1. **Multi-modal通用性**: ARGO 在表格、文本、图像三种数据类型上均有效
+2. **渐进式学习**: 准确率随训练步数稳步提升，验证了 HRL 的有效性
+ 
+
 ## ⚙️ Configuration
 
 Key parameters in `config.py`:
