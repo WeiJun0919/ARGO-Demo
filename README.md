@@ -206,8 +206,8 @@ We evaluate ARGO on three datasets spanning different data modalities:
 
 ### Key Observations
 
-1. **Multi-modal通用性**: ARGO 在表格、文本、图像三种数据类型上均有效
-2. **渐进式学习**: 准确率随训练步数稳步提升，验证了 HRL 的有效性
+1.Multi-modal Generalization: ARGO is effective across tabular, text, and image data modalities.
+2.Progressive Learning: The accuracy steadily improves as training progresses, demonstrating the effectiveness of HRL.
  
 
 ## ⚙️ Configuration
