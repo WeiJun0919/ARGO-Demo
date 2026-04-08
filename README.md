@@ -28,43 +28,6 @@ Training data quality is a key determinant of machine learning performance. Real
 
 Existing methods typically address these issues independently with predefined pipelines, making them difficult to generalize across diverse data modalities and evolving data characteristics.
 
-**ARGO** addresses these challenges through **hierarchical reinforcement learning**:
-
-```
-┌─────────────────────────────────────────────────────────────────────────────┐
-│                           ARGO System                                        │
-├─────────────────────────────────────────────────────────────────────────────┤
-│                                                                              │
-│  ┌─────────────────────────────────────────────────────────────────────┐     │
-│  │                    High-Level: PPO Agent                            │     │
-│  │                                                                      │     │
-│  │   State St = [n_samples, class_ratio, accuracy, noise_ratio,      │     │
-│  │                recent_rewards, feature_stats, action_counts]       │     │
-│  │                                                                      │     │
-│  │   Action At ∈ {repair_features, relabel, augment, remove, skip}    │     │
-│  └─────────────────────────────┬───────────────────────────────────────┘     │
-│                                │                                             │
-│                                ▼                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐     │
-│  │                    Low-Level: Multi-Selector                         │     │
-│  │                                                                      │     │
-│  │   Selector 0: Feature Noise Detector → Repair target samples       │     │
-│  │   Selector 1: Label Noise Detector → Flip target labels             │     │
-│  │   Selector 2: Sample Removal Selector → Delete low-quality samples  │     │
-│  │   Selector 3: Sample Augmentation Selector → Add synthetic samples  │     │
-│  └─────────────────────────────┬───────────────────────────────────────┘     │
-│                                │                                             │
-│                                ▼                                             │
-│  ┌─────────────────────────────────────────────────────────────────────┐     │
-│  │                    Data Governance Environment                       │     │
-│  │                                                                      │     │
-│  │   • State: Dataset statistics & model performance metrics           │     │
-│  │   • Action: Apply governance operations to dataset                   │     │
-│  │   • Reward: Downstream model accuracy + efficiency penalties        │     │
-│  └─────────────────────────────────────────────────────────────────────┘     │
-│                                                                              │
-└─────────────────────────────────────────────────────────────────────────────┘
-```
 
 ## ✨ Key Contributions
 
@@ -80,20 +43,7 @@ Existing methods typically address these issues independently with predefined pi
 
 ## 🏗️ Architecture
 
-### System Pipeline
 
-```
-┌──────────────┐     ┌──────────────┐     ┌──────────────┐
-│  Raw Data    │────▶│   ARGO       │────▶│ Clean Data   │
-│  (Noisy)     │     │   (HRL)      │     │ (High Quality)│
-└──────────────┘     └──────────────┘     └──────────────┘
-                           │
-                           ▼
-                    ┌──────────────┐
-                    │   ML Model   │
-                    │ (Improved)   │
-                    └──────────────┘
-```
 
 ### Agent Design
 
