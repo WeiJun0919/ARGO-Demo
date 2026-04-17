@@ -147,13 +147,21 @@ We evaluate ARGO on three datasets spanning different data modalities:
 
 ### Performance Comparison
 
+| Dataset  | Type    | Clean Accuracy  | Noisy Accuracy | Baseline Accuracy | ARGO Accuracy |
+| -------- | ------- | ----------------| -------------- | ----------------- | ------------  |
+| Adult    | Tabular |     ~76%        |      ~69%      |        ~76%       |     ~77%      |
+| CIFAR-10 | Image   |     ~83%        |      ~71%      |        ~84%       |     ~86%      |
+| IMDB     | Text    |     ~64%        |      ~60%      |        ~64%       |     ~66%      |
 
-| Dataset  | Type    | Initial Accuracy | Final Accuracy | Improvement |
-| -------- | ------- | ---------------- | -------------- | ----------- |
-| Adult    | Tabular | ~70%             | ~73%           | +3%         |
-| CIFAR-10 | Image   | ~71%             | ~74%           | +3%         |
-| IMDB     | Text    | ~60%             | ~66%           | +6%         |
+### Baseline Definition
 
+The baseline is constructed through a sequential data cleaning pipeline consisting of:
+
+noisy sample removal → label/feature correction → data augmentation.
+
+After each stage, the model is retrained. The final performance after completing the full pipeline is reported as the baseline result.
+
+Note that this baseline reflects performance after data cleaning, rather than performance trained on the original noisy dataset.
 
 ### Key Observations
 
