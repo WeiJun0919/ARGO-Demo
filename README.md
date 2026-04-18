@@ -149,9 +149,9 @@ We evaluate ARGO on three datasets spanning different data modalities:
 
 | Dataset  | Type    | Clean Accuracy  | Noisy Accuracy | Baseline Accuracy | ARGO Accuracy |
 | -------- | ------- | ----------------| -------------- | ----------------- | ------------  |
-| Adult    | Tabular |     ~76%        |      ~69%      |        ~76%       |     ~77%      |
-| CIFAR-10 | Image   |     ~83%        |      ~71%      |        ~84%       |     ~86%      |
-| IMDB     | Text    |     ~64%        |      ~60%      |        ~64%       |     ~66%      |
+| Adult    | Tabular |     ~76%        |      ~69%      |        ~72%       |     ~77%      |
+| CIFAR-10 | Image   |     ~83%        |      ~71%      |        ~82%       |     ~86%      |
+| IMDB     | Text    |     ~64%        |      ~60%      |        ~62%       |     ~66%      |
 
 ### Baseline Definition
 
